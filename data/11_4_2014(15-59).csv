@@ -1,0 +1,2 @@
+Voltage,Ripple,Current,Throttle,Power,Speed,Temp,BEC Voltage,BEC Current,Raw NTC,E.Stop,Raw Linear,Packet In,Check Bad,Packet Out,Packet Bad,Fail Safe,Link Live
+13.379040156709108,0.0,0.0,1.0097943192948091,0.0,"[0, 0, 0]",25.386875612144955,0.0,0.0,119.09375,"[255, 255, 2]",962.8060724779629,"[255, 255, 2]","[255, 255, 2]","[255, 255, 2]","[255, 255, 2]","[255, 255, 2]","[255, 255, 2]"
