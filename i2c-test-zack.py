@@ -51,15 +51,15 @@ read_register_table_tmp[0x05] =  'RPM'
 read_register_table_tmp[0x06] =  'Temp'
 read_register_table_tmp[0x07] =  'BEC Voltage'
 read_register_table_tmp[0x08] =  'BEC Current'
-read_register_table_tmp[0x09] =  'Raw NTC'
-read_register_table_tmp[0x10] =  'Raw Linear'
-read_register_table_tmp[0x25] =  'Link Live'
-read_register_table_tmp[0x26] =  'Fail Safe'
-read_register_table_tmp[0x27] =  'E.Stop'
-read_register_table_tmp[0x28] =  'Packet In'
-read_register_table_tmp[0x29] =  'Packet Out'
-read_register_table_tmp[0x30] =  'Check Bad'
-read_register_table_tmp[0x31] =  'Packet Bad'
+#read_register_table_tmp[0x09] =  'Raw NTC'
+#read_register_table_tmp[0x0A] =  'Raw Linear'
+read_register_table_tmp[0x19] =  'Link Live'
+read_register_table_tmp[0x1A] =  'Fail Safe'
+read_register_table_tmp[0x1B] =  'E.Stop'
+#read_register_table_tmp[0x1C] =  'Packet In'
+#read_register_table_tmp[0x1D] =  'Packet Out'
+read_register_table_tmp[0x1E] =  'Check Bad'
+#read_register_table_tmp[0x1F] =  'Packet Bad'
 
 read_register_table_dup = {}
 for x,y in read_register_table_tmp.iteritems():
@@ -136,17 +136,19 @@ if __name__ == '__main__':
 	i2c.timeout(0.2)
 	
 	print "Reading EEPROM."
+	'''
 	i2c_write_data([0x8E, 0x80,0x0F, 0x00, 0xE3])
 	time.sleep(1)
 	i2c_read_bytes([0x8E, 0x05, 0x00, 0x00, 0x6D],[0x8F])
 	i2c_read_bytes([0x8E, 5, 0, 0, 0x6D],[0x8F])
 	print check_sum_calc(['0x8E', '0x05', '0x00', '0x00']),'!!!!!!'
-	
+	'''
 	tmp_clock = time.clock()
 	set_rpm_value = 30000
 	count = 0
 
 	# 50 samples in 10 seconds
+	'''
 	while (time.clock() - tmp_clock < 10):
 		count += 1
 		print count
@@ -184,12 +186,86 @@ if __name__ == '__main__':
 			#i2c_write_data(priming)
 			print priming
 			#i2c_write_data([0x8E, 0x80,subter, 0x00, 0xE3])
-		
+		'''
 			
 
 
 		### READING DATA!####
-		'''	
+	'''
+	i2c_write_data([0x8E, 0x81,0x00, 0x1A, 0xD7])##set Fail Speed
+	time.sleep(1)
+	i2c_write_data([0x8E, 0x82,0x00, 0x01, 0xEF])#Enable fail
+	time.sleep(1)
+	i2c_write_data([0x8E, 0x81,0x00, 0x02, 0xEF])
+	time.sleep(1)
+	i2c_write_data([0x8E, 0x81,0x00, 0x1A, 0xD7])
+	time.sleep(1)
+	i2c_write_data([0x8E, 0x82,0x00, 0x00, 0xF0])	
+	'''
+	#i2c_write_data([0x8E, 0x80,0x00, 0x00, 0xE3])
+	#i2c_read_bytes([0x8E, 0x05, 0x00, 0x00, 0x6D],[0x8F])i2c_read_bytes([0x8E, 5, 0, 0, 0x6D],[0x8F])
+	throttle_value = []
+	#i2c_write_data([0x8E, 0x81,0x00, 0x1A, 0xD7])##set Fail Speed
+	#i2c_write_data([0x8E, 0x82,0x00, 0x01, 0xEF])#Enable fail
+	#time.sleep(5)
+	#i2c_write_data([0x8E, 0x81,0x00, 0x00, 0xf1])#Write to 0
+	#time.sleep(5)
+	#i2c_write_data([0x8E, 0x82,0x00, 0x00, 0xF0])#Disable fail
+	Failed = False
+	i2c_write_data([0x8E, 0x81,0x00, 0x1A, 0xD7])
+	while (time.clock() - tmp_clock < 30): 
+		#print "here"
+		##get throttle value
+		#i2c_write_data([0x8E, 0x81,0x00, 0x1A, 0xD7])##set Fail Speed
+		#i2c_write_data([0x8E, 0x82,0x00, 0x01, 0xEF])#Enable fail
+		#i2c_write_data([0x8E, 0x81,0x00, 0x02, 0xEF])#Write to 0
+		#i2c_write_data([0x8E, 0x82,0x00, 0x00, 0xF0])#Disable fail
+		#time.sleep(5)
+		#i2c_write_data([0x8E, 0x82,0x00, 0x00, 0xF0])##disable fail
+		
+		priming = ['0x8E']
+		priming.append('0x04')
+		priming.append('0x00')
+		priming.append('0x00')
+		priming.append(check_sum_calc(priming))
+		for x in range(len(priming)):
+			priming[x] = int(priming[x],16)
+		val = i2c_read_bytes(priming,[0x8F])
+		raw_readable_val = (val[0] << 8)+ val[1]
+		readable_val = raw_readable_val/2042.0 *0.2502
+		print "%%%%%%%%", readable_val
+
+	
+		if readable_val > 0.04 and readable_val < 1:
+			i2c_write_data([0x8E, 0x82,0x00, 0x00, 0xF0]) ##disable Fail
+			new_val = int(readable_val*100.0)
+			priming = ['0x8E']
+			priming.append('0x81')
+			priming.append('0x00')
+			priming.append(hex(new_val))
+			priming.append(check_sum_calc(priming))
+			for x in range(len(priming)):
+				priming[x] = int(priming[x],16)
+			throttle_value = list(priming)
+			#print "WRITE TO NEW THROTTLE",  readable_val, throttle_value, val, new_val
+			#print val
+			i2c_write_data(throttle_value)##set Fail Speed
+			i2c_write_data([0x8E, 0x82,0x00, 0x01, 0xEF])
+			Failed = False
+		
+		if readable_val < .03:
+			Failed = True
+			#time.sleep(10)
+			#let the fail value do its thing
+			#i2c_write_data([0x8E, 0x82,0x00, 0x01, 0xEF])
+			print "DONT DO ANYTHING",  readable_val, throttle_value, val
+			#i2c_write_data(throttle_value)
+			#i2c_write_data([0x8E, 0x82,0x00, 0x01, 0xEF])
+		
+		#print "%%%%%%%%", readable_val
+		
+		count += 1
+		print count	
 		row=[]
 		for key,values in read_register_table_tmp.iteritems():
 			priming = ['0x8E']
@@ -204,20 +280,29 @@ if __name__ == '__main__':
 			raw_readable_val = (val[0] << 8)+ val[1]
 
 			if values in read_scale_table.keys():
+				
+				#print key, values
+				
+				#i2c_write_data([0x8E, 0x80,0x0F, 0x00, 0xE3])
+				#time.sleep(1)
+				#i2c_read_bytes([0x8E, 0x05, 0x00, 0x00, 0x6D],[0x8F])
+				#i2c_read_bytes([0x8E, 5, 0, 0, 0x6D],[0x8F])
+				#
+
 				readable_val = raw_readable_val/2042.0 * read_scale_table[values][0] 
 				tmp = [values, readable_val]
 				row.append(tmp)
 			else:
 				row.append([values,val]) 
 			#if key == 5:
-	#print values, readable_val
+			print values, readable_val, "RAW", val 
+			
+			CSV.writerow(row)
 		
-		CSV.writerow(row)
-		'''		
 
-
+	'''
 	i2c_write_data([0x8E, 0x80,0x00, 0x00,0xF2])
-	'''		
+		
 	i2c_write_data([0x8E, 0x80,0x0F, 0x00, 0xE3])
 	time.sleep(5)		
 	i2c_read_bytes([142, 5, 0, 0, 109],[0x8F]), '1!!!'
@@ -226,6 +311,7 @@ if __name__ == '__main__':
 
 
 	
+	#i2c_write_data([0x8E, 0x82,0x00, 0x00, 0xF0])#Disable fail
 	
 	print "Reset Bus Pirate to user terminal: "
 	if i2c.resetBP():

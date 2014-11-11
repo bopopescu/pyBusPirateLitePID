@@ -140,116 +140,123 @@ if __name__ == '__main__':
 	i2c.timeout(0.2)
 	
 	print "Reading EEPROM."
+        '''
 	i2c_write_data([0x8E, 0x80,0x0F, 0x00, 0xE3])
 	time.sleep(1)
 	#i2c_read_bytes([0x8E, 0x05, 0x00, 0x00, 0x6D],[0x8F])
-        print i2c_read_bytes([0x8E, 3, 0, 0, 0x6f],[0x8F])
+	print i2c_read_bytes([0x8E, 3, 0, 0, 0x6f],[0x8F])
 	#print check_sum_calc(['0x8E', '0x05', '0x00', '0x00']),'!!!!!!'
         #print check_sum_calc([0x8E, 0x05, 0x00, 0x00]),'!!!!!!'
+        '''
+        '''
 	tmp_clock = time.clock()
-	set_rpm_value = 1000
+	set_rpm_value = 1900
         print "RPM GOAL: ", set_rpm_value
 	count = 0
         clk_dif = 10 if (sys.platform == 'win32') else 0.15;
 	# 50 samples in 10 seconds
-
-	#while (time.clock() - tmp_clock < clk_dif):
-        for i in range(10):
-                time.sleep(1)
-		count += 1
-		print count
-		raw_erpm = i2c_read_bytes([0x8E, 0x05, 0x00, 0x00, 0x6D],[0x8F])
-		raw_erpm_readable = (raw_erpm[0] << 8)+ raw_erpm[1]
-                print raw_erpm, "raw_erpm"
-		erpm_val = raw_erpm_readable/2042.0 * read_scale_table['RPM'][0]
-                num_poles = 12.0 # for this motor
-                rpm_val = raw_erpm_readable * 2.0 / num_poles
-		print erpm_val, "ERPM VAL, ", rpm_val, "RPM"
-		raw_thro = i2c_read_bytes([0x8E, 0x03, 0x00, 0x00, 0x6F],[0x8F])
-                print hex(raw_thro[0]),",", hex(raw_thro[1]), "RAW THROTTLE"
-                raw_thro_readable = (raw_thro[0] << 8) + raw_thro[1]
-                raw_thro_readable = (raw_thro_readable/2042.0 -1.0) * 65535.0
-                thro_val = raw_thro_readable/2042.0 * read_scale_table['Throttle'][0]
-		print raw_thro_readable, "RAW THROTTLE, ", thro_val, "THROTTLE"
-                dif = set_rpm_value - rpm_val
-		print "dif", dif
-                #i2c_write_data([0x8e, 0x80, 0x0f, 0x00, 0xff])
-                if (dif > 100):
-                        adder = raw_thro_readable + 100
-                        top8 = (int(adder) & 0xFF00) >> 8
-                        bottom8 = int(adder) & 0x00FF
-                        print hex(int(raw_thro_readable)), "thro", hex(top8), "top", 
-                        print hex(bottom8), "bottom"
-                        print adder, "NEW THROTTLE"
-			priming = [0x8E]
-			priming.append(0x80)
-			priming.append(top8)
-			priming.append(bottom8)
-			priming.append(check_sum_calc(priming))
-			i2c_write_data(priming)
-			print priming
-		elif (dif < -100):
-                        print "*************ELSEIF****************"
-                        subter = raw_thro_readable - 1000
-                        top8 = (int(subter) & 0xFF00) >> 8
-                        bottom8 = int(subter) & 0x00FF
-                        print hex(int(raw_thro_readable)), "thro", hex(top8), "top", 
-                        print hex(bottom8), "bottom"
-                        print subter, "NEW THROTTLE"
-			priming = [0x8E]
-			priming.append(0x80)
-			priming.append(top8)
-			priming.append(bottom8)
-			priming.append(check_sum_calc(priming))
-			i2c_write_data(priming)
-			print priming
-                print '\n'
-
+        '''
+        try:
+                while (True):
+                        #while (time.clock() - tmp_clock < clk_dif):
+                        #for i in range(10):
+                        ## PID - disabled because does not control higher than ~15k RPM
+                        #         time.sleep(1)
+                        # 	count += 1
+                        # 	print count
+                        # 	raw_erpm = i2c_read_bytes([0x8E, 0x05, 0x00, 0x00, 0x6D],[0x8F])
+                        # 	raw_erpm_readable = (raw_erpm[0] << 8)+ raw_erpm[1]
+                        #         print raw_erpm, "raw_erpm"
+                        # 	erpm_val = raw_erpm_readable/2042.0 * read_scale_table['RPM'][0]
+                        #         num_poles = 12.0 # for this motor
+                        #         rpm_val = raw_erpm_readable * 2.0 / num_poles
+                        # 	print erpm_val, "ERPM VAL, ", rpm_val, "RPM"
+                        # 	raw_thro = i2c_read_bytes([0x8E, 0x03, 0x00, 0x00, 0x6F],[0x8F])
+                        #         print hex(raw_thro[0]),",", hex(raw_thro[1]), "RAW THROTTLE"
+                        #         raw_thro_readable = (raw_thro[0] << 8) + raw_thro[1]
+                        #         raw_thro_readable = (raw_thro_readable/2042.0 -1.0) * 65535.0
+                        #         thro_val = raw_thro_readable/2042.0 * read_scale_table['Throttle'][0]
+                        # 	print raw_thro_readable, "RAW THROTTLE, ", thro_val, "THROTTLE"
+                        #         dif = set_rpm_value - rpm_val
+                        # 	print "dif", dif
+                        #         #i2c_write_data([0x8e, 0x80, 0x0f, 0x00, 0xff])
+                        #         if (dif > 100):
+                        #                 adder = raw_thro_readable + 100
+                        #                 top8 = (int(adder) & 0xFF00) >> 8
+                        #                 bottom8 = int(adder) & 0x00FF
+                        #                 print hex(int(raw_thro_readable)), "thro", hex(top8), "top", 
+                        #                 print hex(bottom8), "bottom"
+                        #                 print adder, "NEW THROTTLE"
+                        # 		priming = [0x8E]
+                        # 		priming.append(0x80)
+                        # 		priming.append(top8)
+                        # 		priming.append(bottom8)
+                        # 		priming.append(check_sum_calc(priming))
+                        # 		i2c_write_data(priming)
+                        # 		print priming
+                        # 	elif (dif < -100):
+                        #                 print "*************ELSEIF****************"
+                        #                 subter = raw_thro_readable - 1000
+                        #                 top8 = (int(subter) & 0xFF00) >> 8
+                        #                 bottom8 = int(subter) & 0x00FF
+                        #                 print hex(int(raw_thro_readable)), "thro", hex(top8), "top", 
+                        #                 print hex(bottom8), "bottom"
+                        #                 print subter, "NEW THROTTLE"
+                        # 		priming = [0x8E]
+                        # 		priming.append(0x80)
+                        # 		priming.append(top8)
+                        # 		priming.append(bottom8)
+                        # 		priming.append(check_sum_calc(priming))
+                        # 		i2c_write_data(priming)
+                        # 		print priming
+                        #         print '\n'
 
 		### READING DATA!####
-        '''	
-		row=[]
-		for key,values in read_register_table_tmp.iteritems():
-			priming = ['0x8E']
-			priming.append(hex(key))
-			priming.append('0x00')
-			priming.append('0x00')
-			priming.append(check_sum_calc(priming))
-			for x in range(len(priming)):
-				priming[x] = int(priming[x],16)
-			val = i2c_read_bytes(priming,[0x8F])
-			#time.sleep(.01)
-			raw_readable_val = (val[0] << 8)+ val[1]
 
-			if values in read_scale_table.keys():
-				readable_val = raw_readable_val/2042.0 * read_scale_table[values][0] 
-				tmp = [values, readable_val]
-				row.append(tmp)
-			else:
-				row.append([values,val]) 
-			#if key == 5:
-	#print values, readable_val
-		
-		CSV.writerow(row)
-		'''		
+                        row=[]
+                        for key,values in read_register_table_tmp.iteritems():
+                                priming = [0x8E]
+                                priming.append(key)
+                                priming.append(0x00)
+                                priming.append(0x00)
+                                priming.append(check_sum_calc(priming))
+                                val = i2c_read_bytes(priming,[0x8F])
+                                raw_readable_val = (val[0] << 8)+ val[1]
+                                if values in read_scale_table.keys():
+                                        readable_val = raw_readable_val/2042.0 * read_scale_table[values][0] 
+                                        if (values == 'Throttle') and (1.0 <= readable_val <= 2.0):
+                                                safe_val = (readable_val-1.0) * 100
+                                                # don't need top 8 because 0-100 is always bottom8
+                                                bottom8 = int(safe_val) & 0x00FF
+                                                priming = [0x8E]
+                                                priming.append(0x81)
+                                                priming.append(0)
+                                                priming.append(bottom8)
+                                                priming.append(check_sum_calc(priming))
+                                                print 'writing to safe: ',
+                                                print bottom8
+                                                i2c_write_data(priming)
+                                        tmp = [values, readable_val]
+                                        row.append(tmp)
+                                else:
+                                        row.append([values,val]) 
+                        print('writing to log: ' + filename + '.csv')
+                        # writes about every 3 seconds
+                        CSV.writerow(row)
+
+                        '''
+                        i2c_write_data([0x8E, 0x80,0x0F, 0x00, 0xE3])
+                        time.sleep(5)		
+                        i2c_read_bytes([142, 5, 0, 0, 109],[0x8F]), '1!!!'
+                        i2c_write_data([0x8E, 0x80,0x00, 0x00,0xF2])
+                        '''
+        except (KeyboardInterrupt, SystemExit):
+                print "Reset Bus Pirate to user terminal: "
+                if i2c.resetBP():
+                        print "OK."
+                else:
+                        print "failed."
+                        sys.exit()
 
 
-	i2c_write_data([0x8E, 0x80,0x00, 0x00,0xF2])
-        '''		
-	i2c_write_data([0x8E, 0x80,0x0F, 0x00, 0xE3])
-	time.sleep(5)		
-	i2c_read_bytes([142, 5, 0, 0, 109],[0x8F]), '1!!!'
-	i2c_write_data([0x8E, 0x80,0x00, 0x00,0xF2])
-	'''
-
-
-	
-	
-	print "Reset Bus Pirate to user terminal: "
-	if i2c.resetBP():
-		print "OK."
-	else:
-		print "failed."
-		sys.exit()
-		
 
